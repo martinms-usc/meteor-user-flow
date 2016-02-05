@@ -1,5 +1,6 @@
 if (Meteor.isClient) {
 
+  // settings to validate input fields
   $.validator.setDefaults({
     rules: {
       email: {
@@ -47,7 +48,6 @@ if (Meteor.isClient) {
         var address = {street, city, state, zip};
         var name = {firstname, lastname};
 
-        console.log('attempting to create new user');
         try {
           Accounts.createUser({
             username,
@@ -59,29 +59,27 @@ if (Meteor.isClient) {
             function(err) {
               if (err) {
                 console.log('ERR ', err);
-                if (err.reason == "Email already exists.") {
+                if (err.reason == 'Email already exists.') {
                   validator.showErrors({
-                    email: "That email already belongs to a registered user."   
+                    'email': 'That email already belongs to a registered user.'  
                   });
                 }
               }
             }
           });
         } catch(e) {
-          alert('there was an error');
+          console.log('error creating user:', e);
         }
       }
     });
   });
 
+  // validate and and submit login
   Template.login.onRendered(function() {
     var validator = $('.login').validate({
       submitHandler: function(event) {
         var loginEmail = $('#email').val();
         var loginPassword = $('#password').val();
-        
-        console.log('email ' + loginEmail);
-        console.log('password ' + loginPassword);
 
         Meteor.loginWithPassword(
           loginEmail, 
@@ -90,12 +88,12 @@ if (Meteor.isClient) {
             if (err) {
               if (err.reason == 'User not found' || err.reason == 'Match failed') {
                 validator.showErrors({
-                  email: err.reason
+                  'email': err.reason
                 });
               }
               if (err.reason == 'Incorrect password') {
                 validator.showErrors({
-                  password: err.reason
+                  'password': err.reason
                 });
               }
             }
@@ -105,6 +103,7 @@ if (Meteor.isClient) {
     });
   });
 
+  // update the user information
   Template.update.events({
     'click .updatePassword': function(event) {
       var oldPass = $('[name=oldPassword]').val();
@@ -124,11 +123,10 @@ if (Meteor.isClient) {
       var newUsername = $('[name=newUsername]').val();
       var user = Meteor.user();
 
-      console.dir(Meteor.user());
-
       try {
         Meteor.call('updateUsername', user._id, newUsername, function(err) {
           alert('username changed successfully');
+          $('[name=newUsername]').val('');
         });
       } catch(err) {
         alert('There was an error');
@@ -137,12 +135,14 @@ if (Meteor.isClient) {
     }
   });
 
+  // show username
   Template.loggedIn.helpers({
     getUsername: function() {
       return Meteor.user().username;
     }
   })
 
+  // logout button
   Template.logout.events({
     'click button': function(event) {
       event.preventDefault();
@@ -150,6 +150,7 @@ if (Meteor.isClient) {
     }
   });
 
+  // remove account
   Template.deleteAccount.events({
     'click button': function(event) {
       event.preventDefault();
